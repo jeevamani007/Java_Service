@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Front Page</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8e44ad, #6a1b9a); /* violet gradient */
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            animation: floatText 3s ease-in-out infinite alternate;
+        }
+
+        header p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            animation: fadeIn 3s ease-in-out;
+        }
+
+        .btn {
+            background-color: #ffffff;
+            color: #6a1b9a;
+            padding: 15px 30px;
+            text-decoration: none;
+            font-size: 1.2em;
+            border-radius: 30px;
+            transition: 0.3s;
+            animation: floatButton 3s ease-in-out infinite alternate;
+        }
+
+        .btn:hover {
+            background-color: #d1c4e9;
+            color: #4a148c;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatText {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        @keyframes floatButton {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Welcome to Our Website</h1>
+    <p>Explore features and discover new possibilities</p>
+    <a href="/login" class="btn">Go to Login</a>
+</header>
+
+</body>
+</html>

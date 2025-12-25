@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Java Folder</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #1e3c72, #2a5298);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            display: flex;
+            gap: 50px;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            width: 90%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            flex: 1;
+            min-width: 350px;
+            text-align: center;
+        }
+
+        #drop-area {
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 12px 30px;
+            background-color: #3498db;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #fileList {
+            text-align: left;
+            margin-top: 15px;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="form-section">
+        <h2>📁 Upload Java Folder</h2>
+
+        <div id="drop-area">
+            <p>📂 Drag & Drop Your Java Folder Here</p>
+            <p style="font-size: 0.8em; opacity: 0.8;">or click below to choose folder</p>
+        </div>
+
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+            <input id="fileInput" type="file" name="files" webkitdirectory multiple required>
+            <button id="submitBtn" type="submit" disabled>🚀 Analyze Folder</button>
+        </form>
+
+        <ul id="fileList"></ul>
+    </div>
+
+</div>
+
+<script>
+    const dropArea = document.getElementById("drop-area");
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
+    const submitBtn = document.getElementById("submitBtn");
+
+    dropArea.addEventListener("click", () => fileInput.click());
+
+    dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.style.background = "rgba(255,255,255,0.2)";
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.style.background = "transparent";
+    });
+
+    dropArea.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        dropArea.style.background = "transparent";
+
+        const items = e.dataTransfer.items;
+        let allFiles = [];
+
+        async function scanDirectory(entry, path="") {
+            return new Promise(resolve => {
+                if (entry.isFile) {
+                    entry.file(file => {
+                        file.relPath = path + file.name;
+                        allFiles.push(file);
+                        resolve();
+                    });
+                } else if (entry.isDirectory) {
+                    const reader = entry.createReader();
+                    reader.readEntries(async entries => {
+                        for (let ent of entries) {
+                            await scanDirectory(ent, path + entry.name + "/");
+                        }
+                        resolve();
+                    });
+                }
+            });
+        }
+
+        for (let item of items) {
+            const entry = item.webkitGetAsEntry();
+            if (entry) await scanDirectory(entry);
+        }
+
+        // Build new DataTransfer object
+        const newData = new DataTransfer();
+        allFiles.forEach(f => newData.items.add(f));
+        fileInput.files = newData.files;
+
+        showFiles();
+    });
+
+    fileInput.addEventListener("change", showFiles);
+
+    function showFiles() {
+        fileList.innerHTML = "";
+        if (fileInput.files.length === 0) {
+            submitBtn.disabled = true;
+            return;
+        }
+
+        submitBtn.disabled = false;
+
+        [...fileInput.files].forEach(f => {
+            const li = document.createElement("li");
+            li.textContent = f.relPath ? f.relPath : f.webkitRelativePath;
+            fileList.appendChild(li);
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1350&q=80') center/cover no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0, 94, 140, 0.75), rgba(60, 40, 80, 0.75));
+            z-index: -1;
+        }
+
+        .container {
+            width: 450px;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .input-box {
+            margin-bottom: 25px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255,255,255,0.7);
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0,150,200,0.8);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: rgba(0,150,200,1);
+        }
+
+        button:disabled {
+            background: rgba(0,150,200,0.5);
+            cursor: not-allowed;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Create Account</h2>
+
+    <form id="registerForm">
+        <div class="input-box">
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+
+        <div class="input-box">
+            <input type="password" id="password" name="password" placeholder="Create password" required>
+        </div>
+
+        <div class="input-box" id="otpBox" style="display: none;">
+            <input type="text" id="otp" name="otp" placeholder="Enter OTP" maxlength="6">
+        </div>
+
+        <button type="button" id="sendOtpBtn">Send OTP</button>
+        <button type="button" id="verifyBtn" style="display: none;">Verify & Register</button>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Login</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const otpBox = document.getElementById('otpBox');
+    const otpInput = document.getElementById('otp');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    sendOtpBtn.addEventListener('click', async function() {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = 'Sending...';
+
+        try {
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('password', password);
+
+            const response = await fetch('/register/send-otp', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.text();
+
+            if (result === 'OTP_SENT') {
+                alert('OTP sent to your email! Please check and enter the OTP.');
+                otpBox.style.display = 'block';
+                sendOtpBtn.style.display = 'none';
+                verifyBtn.style.display = 'block';
+            } else if (result === 'EMAIL_EXISTS') {
+                alert('Email already exists! Please use a different email.');
+            } else if (result === 'INVALID_EMAIL') {
+                alert('Invalid email format! Please enter a valid email.');
+            } else {
+                alert('Error sending OTP. Please try again.');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = 'Send OTP';
+        }
+    });
+
+    verifyBtn.addEventListener('click', async function() {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        const otp = otpInput.value;
+
+        if (!otp || otp.length !== 6) {
+            alert('Please enter a valid 6-digit OTP');
+            return;
+        }
+
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        try {
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('password', password);
+            formData.append('otp', otp);
+
+            const response = await fetch('/register/verify-otp', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.text();
+
+            if (result === 'SUCCESS') {
+                alert('Registration successful! Redirecting to login page...');
+                window.location.href = '/login';
+            } else if (result === 'INVALID_OTP') {
+                alert('Invalid OTP! Please check and try again.');
+            } else {
+                alert('Error verifying OTP. Please try again.');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Register';
+        }
+    });
+</script>
+
+</body>
+</html>
